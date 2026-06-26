@@ -20,8 +20,8 @@ const { eyebrow, headline, headlineAccent, lede, ctaPrimary, ctaSecondary, meta 
     <div class="chat-body" id="thread"></div>
     <div class="chips" id="chips">{chat.suggestedQuestions.map((qq: string, i: number) => <span class="chip" data-i={i}>{qq}</span>)}</div>
     <div class="chat-input">
-      <div class="fake">{chat.placeholder || "Ask me anything…"}</div>
-      <div class="send"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+      <input class="ask-input" type="text" placeholder={chat.placeholder || "Ask me anything…"} aria-label="Ask a question" />
+      <button class="send" type="button" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
     </div>
   </div>
 </div></div></header>
