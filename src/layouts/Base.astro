@@ -11,7 +11,6 @@ const fontsHref =
   (b.fonts.mono ? `&family=${fam(b.fonts.mono)}` : "") +
   `&display=swap`;
 
-// Design tokens as CSS variables on :root (the <html> element).
 const vars =
   `--ink:${b.colors.textPrimary};--ink-soft:${b.colors.textPrimary}c9;--muted:${b.colors.textMuted || "#6f6f76"};` +
   `--paper:${b.colors.background};--paper-2:#FBFAF8;--card:#FFFFFF;` +
@@ -51,7 +50,7 @@ const ogImage = site.seo?.ogImage ? new URL(site.seo.ogImage, base).href : undef
   <body>
     <div class="aurora"><i class="a"></i><i class="b"></i><i class="c"></i></div>
     <slot />
-    <script is:inline define:vars={{ QA: site.previewExchanges }}>
+    <script is:inline>
       (function () {
         var reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
         var nav = document.querySelector("nav");
@@ -62,32 +61,56 @@ const ogImage = site.seo?.ogImage ? new URL(site.seo.ogImage, base).href : undef
         document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
 
         var thread = document.getElementById("thread");
-        if (!thread || !QA.length) return;
-        function mk(c, h) { var d = document.createElement("div"); d.className = c; if (h) d.innerHTML = h; return d; }
+        if (!thread) return;
+        var input = document.querySelector(".ask-input");
+        var sendBtn = document.querySelector(".chat-input .send");
+        var history = [];
+        var busy = false;
+
         function sc() { thread.scrollTop = thread.scrollHeight; }
-        var busy = false, idx = 0, timer;
-        function type(node, text, done) {
-          var i = 0; var cur = document.createElement("span"); cur.className = "cursor"; node.textContent = ""; node.appendChild(cur);
+        function bubble(cls, text) { var d = document.createElement("div"); d.className = "msg " + cls; d.textContent = text; thread.appendChild(d); sc(); return d; }
+        function typingDots() { var d = document.createElement("div"); d.className = "msg bot"; d.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>'; thread.appendChild(d); sc(); return d; }
+        // textContent typewriter — never parses HTML, so visitor/LLM text can't inject.
+        function typeOut(node, text) {
+          if (reduce) { node.textContent = text; return; }
+          var i = 0, cur = document.createElement("span"); cur.className = "cursor";
+          node.textContent = ""; node.appendChild(cur);
           (function step() {
-            if (reduce) { node.textContent = text; if (done) done(); return; }
             i++; node.textContent = text.slice(0, i); node.appendChild(cur); sc();
-            if (i < text.length) setTimeout(step, 16 + Math.random() * 22); else { node.textContent = text; if (done) done(); }
+            if (i < text.length) setTimeout(step, 12 + Math.random() * 18); else node.textContent = text;
           })();
         }
-        function play(i, manual) {
-          if (busy) return; busy = true; clearTimeout(timer); idx = i; thread.innerHTML = "";
-          var u = mk("msg user"); u.textContent = QA[i].q; thread.appendChild(u); sc();
-          var t = mk("msg bot", '<span class="typing"><i></i><i></i><i></i></span>');
-          setTimeout(function () {
-            thread.appendChild(t); sc();
-            setTimeout(function () { var bb = mk("msg bot"); t.replaceWith(bb); type(bb, QA[i].a, function () { busy = false; if (!manual) q(); }); }, reduce ? 0 : 760);
-          }, reduce ? 0 : 340);
-          if (manual) q();
+
+        function ask(q) {
+          if (busy || !q) return;
+          busy = true;
+          bubble("user", q);
+          history.push({ role: "user", text: q });
+          var t = typingDots();
+          fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: q, history: history.slice(0, -1) }) })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              t.remove();
+              var answer = data && data.answer ? data.answer : "I'm having trouble answering right now. Leave your email below and I'll follow up.";
+              typeOut(bubble("bot", ""), answer);
+              history.push({ role: "model", text: answer });
+            })
+            .catch(function () { t.remove(); bubble("bot", "I'm having trouble right now — leave your email below and I'll follow up."); })
+            .then(function () { busy = false; });
         }
-        function q() { clearTimeout(timer); timer = setTimeout(function () { play((idx + 1) % QA.length, false); }, 5200); }
-        document.querySelectorAll(".chip").forEach(function (c) { c.addEventListener("click", function () { play(parseInt(c.getAttribute("data-i") || "0", 10), true); }); });
-        document.querySelectorAll(".tcard").forEach(function (c) { c.addEventListener("click", function () { var a = document.getElementById("ask"); if (a) a.scrollIntoView({ behavior: "smooth", block: "center" }); play(0, true); }); });
-        setTimeout(function () { play(0, false); }, reduce ? 0 : 900);
+
+        document.querySelectorAll(".chip").forEach(function (c) { c.addEventListener("click", function () { ask((c.textContent || "").trim()); }); });
+        document.querySelectorAll(".tcard").forEach(function (c) {
+          c.addEventListener("click", function () {
+            var a = document.getElementById("ask"); if (a) a.scrollIntoView({ behavior: "smooth", block: "center" });
+            ask((c.getAttribute("data-q") || "").trim());
+          });
+        });
+        function submit() { var v = input ? input.value.trim() : ""; if (v) { input.value = ""; ask(v); } }
+        if (input) input.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); submit(); } });
+        if (sendBtn) sendBtn.addEventListener("click", submit);
+
+        setTimeout(function () { bubble("bot", "Hi — ask me anything, or tap a question below."); }, 400);
       })();
     </script>
   </body>
