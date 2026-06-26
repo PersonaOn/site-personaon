@@ -1,0 +1,10 @@
+---
+const { wordmark, tagline, links = [] } = Astro.props;
+---
+<footer><div class="wrap foot">
+  <div>
+    <div class="brand" style="margin-bottom:12px"><span class="mark">{wordmark.charAt(0)}</span><b>{wordmark}</b></div>
+    {tagline && <p>{tagline}</p>}
+  </div>
+  <div class="lnk">{links.map((l: { label: string; href: string }) => <a href={l.href}>{l.label}</a>)}</div>
+</div></footer>

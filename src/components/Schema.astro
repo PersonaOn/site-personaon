@@ -1,0 +1,68 @@
+---
+/**
+ * JSON-LD for SEO/AEO/GEO. Auto-generated per page from site.ts:
+ *  - ProfilePage (the page is an entity profile)
+ *  - Person OR Organization (by archetype) with sameAs (entity linking = the GEO key)
+ *  - FAQPage (the answer-first FAQ -> AI answer-engine extraction)
+ *  - WebSite + PersonaOn as publisher
+ */
+import { site } from "../site";
+
+const s = site;
+const isOrg = ["company", "realtor_or_legal"].includes(s.identity.archetype);
+const base = Astro.site ?? new URL(Astro.url.origin);
+const pageUrl = new URL(Astro.url.pathname, base).href;
+const sameAs = s.identity.links.map((l) => l.href);
+const image = s.seo?.ogImage ? new URL(s.seo.ogImage, base).href : undefined;
+
+const entity = {
+  "@type": isOrg ? "Organization" : "Person",
+  "@id": `${pageUrl}#entity`,
+  name: s.identity.name,
+  url: pageUrl,
+  description: s.seo?.description,
+  ...(image ? { image, logo: image } : {}),
+  ...(isOrg ? {} : { jobTitle: s.identity.headline }),
+  sameAs,
+  knowsAbout: s.knowsAbout ?? [],
+};
+
+const graph: Record<string, unknown>[] = [
+  {
+    "@type": "ProfilePage",
+    "@id": `${pageUrl}#profilepage`,
+    url: pageUrl,
+    name: `${s.identity.name}: ${s.identity.headline}`,
+    ...(s.seo?.description ? { description: s.seo.description } : {}),
+    mainEntity: { "@id": `${pageUrl}#entity` },
+  },
+  entity,
+  {
+    "@type": "WebSite",
+    "@id": `${base.href}#website`,
+    url: base.href,
+    name: s.identity.name,
+    publisher: { "@type": "Organization", name: "PersonaOn", url: "https://personaon.com" },
+  },
+];
+
+if (s.faq?.length) {
+  graph.push({
+    "@type": "FAQPage",
+    "@id": `${pageUrl}#faqpage`,
+    mainEntity: s.faq.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  });
+}
+
+const jsonld = { "@context": "https://schema.org", "@graph": graph };
+// Escape so attacker-influenced slurp/LLM text cannot break out of the <script> (stored XSS).
+const jsonldSafe = JSON.stringify(jsonld)
+  .replace(/</g, "\\u003c")
+  .replace(/>/g, "\\u003e")
+  .replace(/&/g, "\\u0026");
+---
+<script type="application/ld+json" set:html={jsonldSafe} />

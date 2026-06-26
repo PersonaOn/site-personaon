@@ -1,0 +1,27 @@
+---
+const { eyebrow, headline, headlineAccent, lede, ctaPrimary, ctaSecondary, meta = [], chat, initials } = Astro.props;
+---
+<header><div class="wrap"><div class="hero">
+  <div class="hero-text">
+    {eyebrow && <span class="eyebrow anim d1"><span class="dot"></span>{eyebrow}</span>}
+    <h1 class="anim d2">{headline} {headlineAccent && <em>{headlineAccent}</em>}</h1>
+    <p class="lede anim d3">{lede}</p>
+    <div class="cta anim d4">
+      <a class="btn btn-pill" href={ctaPrimary.href}>{ctaPrimary.label}</a>
+      {ctaSecondary && <a class="btn btn-ghost" href={ctaSecondary.href}>{ctaSecondary.label}</a>}
+    </div>
+    {meta.length > 0 && <div class="hero-meta anim d5">{meta.map((m: string) => <span>{m}</span>)}</div>}
+  </div>
+  <div class="chat anim d3" id="ask">
+    <div class="chat-top">
+      <div class="avatar">{initials}</div>
+      <div class="chat-id">{chat.greeting}<small>online · answers in their voice</small></div>
+    </div>
+    <div class="chat-body" id="thread"></div>
+    <div class="chips" id="chips">{chat.suggestedQuestions.map((qq: string, i: number) => <span class="chip" data-i={i}>{qq}</span>)}</div>
+    <div class="chat-input">
+      <div class="fake">{chat.placeholder || "Ask me anything…"}</div>
+      <div class="send"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+    </div>
+  </div>
+</div></div></header>

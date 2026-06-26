@@ -1,0 +1,10 @@
+---
+const { quote, accentWord, cite } = Astro.props;
+const parts: string[] | null = accentWord && quote.includes(accentWord) ? quote.split(accentWord) : null;
+---
+<div class="quote"><div class="wrap reveal">
+  <blockquote>
+    {parts ? <Fragment>{parts[0]}<em>{accentWord}</em>{parts.slice(1).join(accentWord)}</Fragment> : quote}
+  </blockquote>
+  {cite && <cite>{cite}</cite>}
+</div></div>

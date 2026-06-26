@@ -1,0 +1,5 @@
+---
+const { items = [] } = Astro.props;
+const row = [...items, ...items];
+---
+<div class="wrap"><div class="marquee"><div class="track">{row.map((i: string) => <span>{i}</span>)}</div></div></div>

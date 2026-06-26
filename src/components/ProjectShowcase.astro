@@ -1,0 +1,24 @@
+---
+const { kicker, title, blurb, projects = [] } = Astro.props;
+---
+<section style="padding-top:20px" id="work"><div class="wrap">
+  <div class="sec-head reveal">
+    <div>
+      {kicker && <span class="kicker">{kicker}</span>}
+      <h2>{title}</h2>
+    </div>
+    {blurb && <p>{blurb}</p>}
+  </div>
+  <div class="work">
+    {projects.map((p: any) => (
+      <article class="pcard reveal">
+        <div class="pthumb">{p.media && <img src={p.media.src} alt={p.media.alt || ""} loading="lazy" />}</div>
+        <div class="pbody">
+          <h3>{p.title}</h3>
+          <p>{p.body}</p>
+          <div class="tags">{(p.tags || []).map((t: string) => <span class="tag">{t}</span>)}</div>
+        </div>
+      </article>
+    ))}
+  </div>
+</div></section>

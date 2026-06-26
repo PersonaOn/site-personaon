@@ -1,0 +1,39 @@
+# PersonaOn representative — open to search engines and AI answer engines so this
+# page can rank AND be cited. (Per-deploy: the platform can flip this to block
+# AI training if the owner opts out.)
+
+User-agent: *
+Allow: /
+
+# Explicitly welcome AI / answer-engine crawlers (citation requires access).
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+Sitemap: https://sainath.personaon.app/sitemap-index.xml

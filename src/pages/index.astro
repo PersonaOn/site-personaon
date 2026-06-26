@@ -1,0 +1,25 @@
+---
+import Base from "../layouts/Base.astro";
+import Hero from "../components/Hero.astro";
+import ProofStrip from "../components/ProofStrip.astro";
+import AskAbout from "../components/AskAbout.astro";
+import ProjectShowcase from "../components/ProjectShowcase.astro";
+import Faq from "../components/Faq.astro";
+import PullQuote from "../components/PullQuote.astro";
+import OpportunityCapture from "../components/OpportunityCapture.astro";
+import Footer from "../components/Footer.astro";
+import { site } from "../site";
+
+const MAP: Record<string, any> = { Hero, ProofStrip, AskAbout, ProjectShowcase, Faq, PullQuote, OpportunityCapture, Footer };
+const initials = site.identity.name.split(/\s+/).map((w) => w.charAt(0)).slice(0, 2).join("");
+---
+<Base>
+  <nav><div class="wrap bar">
+    <div class="brand"><span class="mark">{site.identity.name.charAt(0)}</span><b>{site.identity.name}</b></div>
+    <div class="navlinks"><a href="#ask">Ask</a><a href="#faq">FAQ</a><a href="#connect">Connect →</a></div>
+  </div></nav>
+  {site.page.map((s) => {
+    const C = MAP[s.type];
+    return C ? <C {...(s.props as Record<string, unknown>)} initials={initials} /> : null;
+  })}
+</Base>

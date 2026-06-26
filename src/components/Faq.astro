@@ -1,0 +1,28 @@
+---
+/**
+ * Answer-first FAQ rendered as STATIC HTML (crawlable by Google + AI engines).
+ * This is the AEO/GEO surface — the same answers the chat gives, but indexable.
+ * Pairs with the FAQPage JSON-LD in Schema.astro.
+ */
+import { site } from "../site";
+const faq = site.faq ?? [];
+---
+{faq.length > 0 && (
+  <section id="faq"><div class="wrap">
+    <div class="sec-head reveal">
+      <div>
+        <span class="kicker">FAQ</span>
+        <h2>Questions, answered.</h2>
+      </div>
+      <p>Straight answers: the same ones the representative gives, indexed for search and AI.</p>
+    </div>
+    <div class="faq-list">
+      {faq.map((f: { q: string; a: string }) => (
+        <div class="faq-item reveal">
+          <h3>{f.q}</h3>
+          <p>{f.a}</p>
+        </div>
+      ))}
+    </div>
+  </div></section>
+)}

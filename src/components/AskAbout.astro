@@ -1,0 +1,21 @@
+---
+const { kicker, title, blurb, topics = [] } = Astro.props;
+---
+<section><div class="wrap">
+  <div class="sec-head reveal">
+    <div>
+      {kicker && <span class="kicker">{kicker}</span>}
+      <h2>{title}</h2>
+    </div>
+    {blurb && <p>{blurb}</p>}
+  </div>
+  <div class="grid">
+    {topics.map((t: string, i: number) => (
+      <div class="tcard reveal" data-q={t}>
+        <span class="tnum">0{i + 1}</span>
+        <h3>{t}</h3>
+        <span class="tgo">Ask the representative <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+      </div>
+    ))}
+  </div>
+</div></section>

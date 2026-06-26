@@ -1,0 +1,13 @@
+---
+const { kicker, title, body, submitLabel } = Astro.props;
+---
+<section style="padding-top:10px" id="connect"><div class="wrap reveal"><div class="band"><div class="inner">
+  {kicker && <span class="kicker">{kicker}</span>}
+  <h2>{title}</h2>
+  <p>{body}</p>
+  <div class="capture">
+    <input type="email" placeholder="you@company.com" aria-label="Your email" />
+    <button class="btn btn-pill">{submitLabel}</button>
+  </div>
+  <small>No spam. Your note goes straight to them, with the conversation attached.</small>
+</div></div></div></section>

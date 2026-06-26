@@ -1,0 +1,94 @@
+---
+import "../styles/global.css";
+import { site } from "../site";
+import Schema from "../components/Schema.astro";
+
+const b = site.brand;
+const fam = (n: string) => n.split(",")[0]!.trim().replace(/\s+/g, "+");
+const fontsHref =
+  `https://fonts.googleapis.com/css2?family=${fam(b.fonts.display)}:ital@0;1` +
+  `&family=${fam(b.fonts.body)}:wght@300;400;500;600;700` +
+  (b.fonts.mono ? `&family=${fam(b.fonts.mono)}` : "") +
+  `&display=swap`;
+
+// Design tokens as CSS variables on :root (the <html> element).
+const vars =
+  `--ink:${b.colors.textPrimary};--ink-soft:${b.colors.textPrimary}c9;--muted:${b.colors.textMuted || "#6f6f76"};` +
+  `--paper:${b.colors.background};--paper-2:#FBFAF8;--card:#FFFFFF;` +
+  `--blue:${b.colors.primary};--green:${b.colors.accent || b.colors.primary};--gold:${b.colors.secondary || b.colors.accent || b.colors.primary};` +
+  `--line:rgba(29,29,31,.10);--line-2:rgba(29,29,31,.06);` +
+  `--display:'${b.fonts.display}',Georgia,serif;--sans:'${b.fonts.body}',system-ui,sans-serif;--mono:'${b.fonts.mono || "ui-monospace"}',monospace;`;
+
+const title = `${site.identity.name} — ${site.identity.headline}`;
+const desc = site.seo?.description || site.identity.headline;
+const base = Astro.site ?? new URL(Astro.url.origin);
+const canonical = new URL(Astro.url.pathname, base).href;
+const ogImage = site.seo?.ogImage ? new URL(site.seo.ogImage, base).href : undefined;
+---
+
+<!doctype html>
+<html lang="en" style={vars}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="profile" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={canonical} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={desc} />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href={fontsHref} rel="stylesheet" />
+    <Schema />
+  </head>
+  <body>
+    <div class="aurora"><i class="a"></i><i class="b"></i><i class="c"></i></div>
+    <slot />
+    <script is:inline define:vars={{ QA: site.previewExchanges }}>
+      (function () {
+        var reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
+        var nav = document.querySelector("nav");
+        addEventListener("scroll", function () { if (nav) nav.classList.toggle("scrolled", scrollY > 20); }, { passive: true });
+        var io = new IntersectionObserver(function (es) {
+          es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+        }, { threshold: 0.16 });
+        document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
+
+        var thread = document.getElementById("thread");
+        if (!thread || !QA.length) return;
+        function mk(c, h) { var d = document.createElement("div"); d.className = c; if (h) d.innerHTML = h; return d; }
+        function sc() { thread.scrollTop = thread.scrollHeight; }
+        var busy = false, idx = 0, timer;
+        function type(node, text, done) {
+          var i = 0; var cur = document.createElement("span"); cur.className = "cursor"; node.textContent = ""; node.appendChild(cur);
+          (function step() {
+            if (reduce) { node.textContent = text; if (done) done(); return; }
+            i++; node.textContent = text.slice(0, i); node.appendChild(cur); sc();
+            if (i < text.length) setTimeout(step, 16 + Math.random() * 22); else { node.textContent = text; if (done) done(); }
+          })();
+        }
+        function play(i, manual) {
+          if (busy) return; busy = true; clearTimeout(timer); idx = i; thread.innerHTML = "";
+          var u = mk("msg user"); u.textContent = QA[i].q; thread.appendChild(u); sc();
+          var t = mk("msg bot", '<span class="typing"><i></i><i></i><i></i></span>');
+          setTimeout(function () {
+            thread.appendChild(t); sc();
+            setTimeout(function () { var bb = mk("msg bot"); t.replaceWith(bb); type(bb, QA[i].a, function () { busy = false; if (!manual) q(); }); }, reduce ? 0 : 760);
+          }, reduce ? 0 : 340);
+          if (manual) q();
+        }
+        function q() { clearTimeout(timer); timer = setTimeout(function () { play((idx + 1) % QA.length, false); }, 5200); }
+        document.querySelectorAll(".chip").forEach(function (c) { c.addEventListener("click", function () { play(parseInt(c.getAttribute("data-i") || "0", 10), true); }); });
+        document.querySelectorAll(".tcard").forEach(function (c) { c.addEventListener("click", function () { var a = document.getElementById("ask"); if (a) a.scrollIntoView({ behavior: "smooth", block: "center" }); play(0, true); }); });
+        setTimeout(function () { play(0, false); }, reduce ? 0 : 900);
+      })();
+    </script>
+  </body>
+</html>
